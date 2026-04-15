@@ -1,0 +1,154 @@
+﻿@using SmartBank.MVC.ViewModel
+@model List<AccountWithTransaction>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .account-header {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    .balance-text {
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: #16a34a;
+    }
+
+    .custom-table {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+        .custom-table thead {
+            background: linear-gradient(to right, #6366f1, #4f46e5);
+            color: white;
+        }
+
+        .custom-table tbody tr:hover {
+            background-color: #f1f5f9;
+            transition: 0.2s;
+        }
+
+    .badge-deposit {
+        background-color: #dcfce7;
+        color: #166534;
+        padding: 5px 10px;
+        border-radius: 10px;
+    }
+
+    .badge-withdraw {
+        background-color: #fee2e2;
+        color: #991b1b;
+        padding: 5px 10px;
+        border-radius: 10px;
+    }
+
+    .action-box input {
+        border-radius: 10px;
+    }
+
+    .action-box button {
+        border-radius: 10px;
+    }
+</style>
+
+<div class="container mt-5">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">💼 My Accounts</h2>
+        <form method="post" asp-action="Create">
+            <button class="btn btn-primary px-4 py-2 shadow-sm">
+                + Create Account
+            </button>
+        </form>
+    </div>
+
+    @foreach (var acc in Model)
+    {
+        <div class="glass-card p-4 mb-4">
+
+            <!-- Account Header -->
+            <div class="d-flex justify-content-between align-items-center account-header">
+                <div>
+                    <small class="text-muted">Account Number</small><br />
+                    <strong>@acc.Account.AccountNumber</strong>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">Available Balance</small><br />
+                    <span class="balance-text">₹ @acc.Account.Balance</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="row mb-4 action-box">
+                <div class="col-md-6 mb-2">
+                    <form method="post" asp-action="Deposit" class="d-flex gap-2">
+                        <input type="hidden" name="accountId" value="@acc.Account.Id" />
+                        <input type="number" name="amount" placeholder="Deposit Amount" class="form-control" />
+                        <button class="btn btn-success">Deposit</button>
+                    </form>
+                </div>
+
+                <div class="col-md-6 mb-2">
+                    <form method="post" asp-action="Withdraw" class="d-flex gap-2">
+                        <input type="hidden" name="accountId" value="@acc.Account.Id" />
+                        <input type="number" name="amount" placeholder="Withdraw Amount" class="form-control" />
+                        <button class="btn btn-danger">Withdraw</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Transactions -->
+            <h6 class="fw-semibold mb-3">📊 Transaction History</h6>
+
+            @if (acc.Transactions != null && acc.Transactions.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table custom-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tx in acc.Transactions)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="@(tx.Type == "Deposit" ? "badge-deposit" : "badge-withdraw")">
+                                            @tx.Type
+                                        </span>
+                                    </td>
+                                    <td class="fw-semibold">₹ @tx.Amount</td>
+                                    <td class="text-muted">@tx.Date.ToString("g")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted py-3">
+                    No transactions yet
+                </div>
+            }
+        </div>
+    }
+</div>

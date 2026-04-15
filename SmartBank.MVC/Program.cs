@@ -1,0 +1,85 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using SmartBank.MVC.Data;
+using SmartBank.AuthService.Services;
+using SmartBank.MVC.Services;
+namespace SmartBank.MVC
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            //registering the httpclient
+            builder.Services.AddHttpClient<AccountServices>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7000/accounts/"); 
+            });
+
+            // If you need to call the Transaction Service from MVC directly in the future,
+            // register a separate typed client 
+            builder.Services.AddHttpClient("TransactionsClient", client =>
+            {
+                // Use gateway root; requests will include the /Transactions prefix when calling
+                // so the gateway can match the route and forward correctly.
+                client.BaseAddress = new Uri("https://localhost:7000/"); 
+            });
+
+            builder.Services.AddHttpClient<AuthServices>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7000/"); 
+            });
+
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSingleton<FeedbackService>();
+            builder.Services.AddSession();
+            
+
+            // Add services to the container.
+            //var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            //builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            //    options.UseSqlServer(connectionString));
+            //builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+            //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            //    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+
+            builder.Services.AddControllersWithViews();
+            
+            builder.Services.AddRazorPages();
+
+            //we will have to add the gateway client
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseMigrationsEndPoint();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+            app.UseSession();
+
+            app.UseAuthorization();
+
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+            app.MapRazorPages();
+
+            app.Run();
+        }
+    }
+}

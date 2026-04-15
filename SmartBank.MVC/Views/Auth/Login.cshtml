@@ -1,0 +1,37 @@
+﻿@model SmartBank.AuthService.DTOs.LoginDto
+
+<div class="row justify-content-center">
+    <div class="col-md-4">
+
+        <div class="card shadow">
+            <div class="card-body">
+
+                <h3 class="text-center mb-4">Login</h3>
+
+                <form method="post">
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input asp-for="Email" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Password</label>
+                        <input asp-for="Password" type="password" class="form-control" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Login
+                    </button>
+                </form>
+
+                <p class="text-danger mt-2">@ViewBag.Error</p>
+
+                <div class="text-center mt-3">
+                    <a href="/Auth/Register">Don't have an account?</a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>

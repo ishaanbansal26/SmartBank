@@ -1,0 +1,61 @@
+﻿@page "/Feedback"
+@model SmartBank.MVC.Pages.FeedbackModel
+@{
+    Layout = "_Layout"; // ensure the shared layout (and Bootstrap) is applied
+}
+
+<div class="container mt-2">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Feedback Form</h3>
+
+                    <form method="post" asp-page="Feedback">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Feedback.Name" class="form-label"></label>
+                            <input asp-for="Feedback.Name" class="form-control" placeholder="Name" />
+                            <span asp-validation-for="Feedback.Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Feedback.Email" class="form-label"></label>
+                            <input asp-for="Feedback.Email" class="form-control" placeholder="Email" />
+                            <span asp-validation-for="Feedback.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Feedback.Message" class="form-label"></label>
+                            <textarea asp-for="Feedback.Message" class="form-control" rows="1" placeholder="Your feedback"></textarea>
+                            <span asp-validation-for="Feedback.Message" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Feedback.Rating" class="form-label"></label>
+                            <input asp-for="Feedback.Rating" type="number" min="1" max="5" class="form-control w-25" />
+                            <span asp-validation-for="Feedback.Rating" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                            <a asp-page="/Index" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+
+                    @if (Model.SuccessMessage != null)
+                    {
+                        <div class="alert alert-success mt-3">@Model.SuccessMessage</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

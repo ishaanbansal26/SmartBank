@@ -1,0 +1,140 @@
+﻿using System.Net.Http.Headers;
+using System.Net.Http.Json;
+
+namespace SmartBank.MVC.Services
+{
+    public class AccountServices
+    {
+        private readonly HttpClient _httpClient;
+
+        public AccountServices(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
+        // GET ALL ACCOUNTS
+        public async Task<List<AccountDto>> GetAccounts(string token)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            var accounts = await _httpClient.GetFromJsonAsync<List<AccountDto>>("api/accounts");
+
+            // Ensure we never return null to callers
+            return accounts ?? new List<AccountDto>();
+        }
+
+        // CREATE ACCOUNT
+        public async Task<bool> CreateAccount(string token)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _httpClient.PostAsync("api/accounts", null);
+            return response.IsSuccessStatusCode;
+        }
+
+        // DELETE ACCOUNT
+        public async Task<bool> DeleteAccount(int id, string token)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _httpClient.DeleteAsync($"api/accounts/{id}");
+            return response.IsSuccessStatusCode;
+        }
+
+        // DEPOSIT
+        public async Task<bool> Deposit(int accountId, decimal amount, string token)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            var dto = new TransactionDto
+            {
+                AccountId = accountId,
+                Amount = amount,
+                Type = "Deposit",
+                Description = "Deposit from MVC",
+                Date = DateTime.Now
+            };
+
+            var response = await _httpClient.PostAsJsonAsync("api/accounts/deposit", dto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new ApplicationException($"Account API deposit failed: {response.StatusCode}, {error}");
+            }
+
+            return true;
+        }
+
+        // WITHDRAW
+        public async Task<bool> Withdraw(int accountId, decimal amount, string token)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            var dto = new TransactionDto
+            {
+                AccountId = accountId,
+                Amount = amount,
+                Type = "Withdraw",
+                Description = "Withdraw from MVC",
+                Date = DateTime.Now
+            };
+
+            var response = await _httpClient.PostAsJsonAsync("api/accounts/withdraw", dto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new ApplicationException($"Account API withdraw failed: {response.StatusCode}, {error}");
+            }
+
+            return true;
+        }
+
+        public async Task<List<TransactionDto>> GetTransactions(int accountId, string token)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            // The transactions endpoint lives in a separate service (Transaction Service).
+            // Use absolute URL to ensure the request goes to the correct service.
+            var url = $"https://localhost:7003/api/transactions/account/{accountId}";
+
+            try
+            {
+                var transactions = await _httpClient.GetFromJsonAsync<List<TransactionDto>>(url);
+                // Ensure we never return null to callers
+                return transactions ?? new List<TransactionDto>();
+            }
+            catch (HttpRequestException)
+            {
+                // The remote service may be down or returned a non-success status (404, 500, etc.).
+                // Return an empty list so the MVC view can render without crashing.
+                return new List<TransactionDto>();
+            }
+        }
+    }
+
+    // DTO
+    public class AccountDto
+    {
+        public int Id { get; set; }
+        public string AccountNumber { get; set; }
+        public decimal Balance { get; set; }
+    }
+
+    public class TransactionDto
+    {
+        public int Id { get; set; }
+        public int AccountId { get; set; }
+        public decimal Amount { get; set; }
+        public string Type { get; set; }
+        public string Description { get; set; }
+        public DateTime Date { get; set; }
+    }
+}
