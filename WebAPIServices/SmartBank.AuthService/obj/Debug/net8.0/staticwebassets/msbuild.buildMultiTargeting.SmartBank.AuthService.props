@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\SmartBank.AuthService.props" />
-</Project>
